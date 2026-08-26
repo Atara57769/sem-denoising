@@ -23,11 +23,7 @@ from sem_denoising.metrics import evaluate_predictions, Timer
 from sem_denoising.config import PipelineConfig
 
 
-def run_neural_inference(
-    model: nn.Module,
-    noisy_img: np.ndarray,
-    device: str = "cpu",
-) -> Tuple[np.ndarray, float]:
+def run_neural_inference(model: nn.Module,noisy_img: np.ndarray,device: str = "cpu",) -> Tuple[np.ndarray, float]:
     """
     Run neural model inference on a single image and record CPU/device latency in ms.
 

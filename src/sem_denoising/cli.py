@@ -19,46 +19,16 @@ from sem_denoising.data import (
     load_image,
     extract_patches,
 )
+
 from sem_denoising.models import build_model, count_parameters
 from sem_denoising.training import (
     train_model,
-    run_all_models_sanity_check,
     save_checkpoint,
     load_checkpoint,
     verify_reproducibility,
 )
 from sem_denoising.experiments.benchmark import BenchmarkRunner, run_neural_inference
 from sem_denoising.experiments.visualizer import plot_benchmark_results
-
-
-def cmd_sanity_check(args: argparse.Namespace, config: PipelineConfig):
-    """Execute overfit sanity check on a single image patch."""
-    print("=== EXECUTING OVERFIT SANITY CHECK ===")
-    np.random.seed(config.training.seed)
-    torch.manual_seed(config.training.seed)
-
-    ref_path = get_clean_reference_path(config.data.train_sets[0], data_root=config.data.data_root)
-    clean_img = load_image(ref_path)
-    sample_patch = extract_patches(clean_img, patch_size=config.data.patch_size, stride=config.data.stride)[0]
-
-    noise_fn = lambda img: add_gaussian_noise(img, sigma=config.noise.gaussian.get("sigma", 0.10))
-
-    models = {
-        "DirectPredictionCNN": build_model("direct_cnn"),
-        "ResidualPredictionCNN": build_model("residual_cnn"),
-        "SmallDnCNN (5L)": build_model("small_dncnn"),
-        "StrongDnCNN (17L)": build_model("strong_dncnn"),
-    }
-
-    results = run_all_models_sanity_check(
-        models_dict=models,
-        sample_patch=sample_patch,
-        noise_fn=noise_fn,
-        epochs=args.epochs or 50,
-        lr=config.training.lr,
-        device=config.training.device,
-    )
-    print("\nSanity Check successfully completed for all architectures.")
 
 
 def cmd_train(args: argparse.Namespace, config: PipelineConfig):
@@ -214,14 +184,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
-    # Sanity check command
-    p_sanity = subparsers.add_parser(
-        "sanity-check",
-        parents=[config_parser],
-        help="Run overfit sanity check on single patch",
-    )
-    p_sanity.add_argument("--epochs", type=int, default=50, help="Sanity check iterations")
-
     # Train command
     p_train = subparsers.add_parser(
         "train",
@@ -256,9 +218,7 @@ def main():
         print(f"Notice: Config file '{args.config}' not found, using default configuration.")
         config = PipelineConfig()
 
-    if args.command == "sanity-check":
-        cmd_sanity_check(args, config)
-    elif args.command == "train":
+    if args.command == "train":
         cmd_train(args, config)
     elif args.command == "benchmark":
         cmd_benchmark(args, config)

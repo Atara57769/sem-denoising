@@ -18,7 +18,7 @@ A clean, modular, research-ready Python library and benchmarking suite for Scann
 - **Extensible Architecture**: Registry/factory patterns for dynamic instantiation of models and noise models.
 - **Unified Evaluation Suite**: Evaluates MSE, PSNR, SSIM, and exact CPU execution latency.
 - **Reproducibility & Verification**: Full checkpoint save/reload validation asserting $\Delta = 0.0$.
-- **CLI & Visualization**: Command-line interface for training, evaluation, sanity checking, and multi-metric plotting.
+- **CLI & Visualization**: Command-line interface for training, evaluation, benchmarking, and multi-metric plotting.
 
 ## Project Structure
 
@@ -34,7 +34,7 @@ project/
 │       ├── metrics.py        # Evaluator (MSE, PSNR, SSIM, Runtime)
 │       ├── data/             # Dataset, patch extraction, image loader
 │       ├── models/           # Classical, direct, residual, DnCNN & registry
-│       ├── training/         # Unified trainer, sanity check, checkpoint manager
+│       ├── training/         # Unified trainer & checkpoint manager
 │       ├── experiments/      # Benchmarking runner & 4-panel visualizer
 │       └── cli.py            # CLI entrypoint
 ├── tests/                    # Comprehensive unit tests
@@ -50,22 +50,17 @@ pip install -e .
 
 ### CLI Usage
 
-1. **Run Overfit Sanity Check**:
-   ```bash
-   python main.py sanity-check --config configs/default_config.yaml
-   ```
-
-2. **Train All Models**:
+1. **Train All Models**:
    ```bash
    python main.py train --config configs/default_config.yaml
    ```
 
-3. **Benchmark Test Set (Set 5)**:
+2. **Benchmark Test Set (Set 5)**:
    ```bash
    python main.py benchmark --config configs/default_config.yaml
    ```
 
-4. **Run Unit Tests**:
+3. **Run Unit Tests**:
    ```bash
    pytest tests/ -v
    ```
