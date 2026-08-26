@@ -31,16 +31,16 @@ project/
 │   └── sem_denoising/
 │       ├── config.py         # Dataclass configs & YAML loaders
 │       ├── noise.py          # Consolidated noise models
-│       ├── metrics.py        # Evaluator (MSE, PSNR, SSIM, Runtime)
+│       ├── metrics.py        # Evaluator (MSE, PSNR, SSIM, Timer)
 │       ├── data/             # Dataset, patch extraction, image loader
 │       ├── models/           # Classical, direct, residual, DnCNN & registry
 │       ├── training/         # Unified trainer & checkpoint manager
-│       ├── experiments/      # Benchmarking runner & 4-panel visualizer
-│       ├── cli_train.py      # Dedicated training CLI
-│       └── cli_benchmark.py  # Dedicated benchmarking CLI
+│       ├── experiments/      # Benchmarking runner & visualizer
+│       ├── cli_train.py      # Training CLI module
+│       └── cli_benchmark.py  # Benchmarking CLI module
 ├── tests/                    # Comprehensive unit tests
-├── main_train.py             # Training execution entry point
-└── main_benchmark.py         # Benchmarking execution entry point
+├── main_train.py             # Training runner script
+└── main_benchmark.py         # Benchmarking runner script
 ```
 
 ## Quickstart
