@@ -17,6 +17,7 @@ A clean, modular, research-ready Python library and benchmarking suite for Scann
     - `small_dncnn`: 5 layers, 32 channels, residual learning (`residual=True`, `use_bn=True`, LeakyReLU)
     - `strong_dncnn`: 17 layers, 64 channels, residual learning (`residual=True`, `use_bn=True`, ReLU)
 - **Extensible Architecture**: Registry/factory patterns for dynamic instantiation of models and noise models.
+- **Extensible Architecture**: Type-safe `ModelType` enum and factory patterns for dynamic model instantiation.
 - **Unified Evaluation Suite**: Evaluates MSE, PSNR, SSIM, and exact CPU execution latency.
 - **Reproducibility & Verification**: Full checkpoint save/reload validation asserting $\Delta = 0.0$.
 - **CLI & Visualization**: Command-line interface for training, evaluation, benchmarking, and multi-metric plotting.

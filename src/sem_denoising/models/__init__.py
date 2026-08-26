@@ -11,6 +11,7 @@ from sem_denoising.models.classical import (
 )
 from sem_denoising.models.dncnn import DnCNN
 from sem_denoising.models.registry import MODEL_REGISTRY, build_model, count_parameters
+from sem_denoising.models.registry import ModelType, MODEL_REGISTRY, build_model, count_parameters
 
 __all__ = [
     "denoise_identity",
@@ -19,6 +20,7 @@ __all__ = [
     "denoise_wavelet_baseline",
     "CLASSICAL_METHODS",
     "DnCNN",
+    "ModelType",
     "MODEL_REGISTRY",
     "build_model",
     "count_parameters",

@@ -10,6 +10,7 @@ import torch.nn as nn
 
 from sem_denoising.config import PipelineConfig
 from sem_denoising.models import build_model
+from sem_denoising.models import build_model, ModelType
 from sem_denoising.training import load_checkpoint
 from sem_denoising.experiments.benchmark import BenchmarkRunner
 from sem_denoising.experiments.visualizer import plot_benchmark_results
@@ -45,6 +46,10 @@ def run_benchmark(config: PipelineConfig):
         "Small DnCNN": ("small_dncnn", "checkpoint_small_dncnn.pth"),
         "Strong DnCNN (Gaussian)": ("strong_dncnn", "checkpoint_strong_dncnn_gaussian.pth"),
         "Strong DnCNN (Mixed)": ("strong_dncnn", "checkpoint_strong_dncnn_mixed.pth"),
+        "Direct CNN": (ModelType.DIRECT_CNN, "checkpoint_direct_cnn.pth"),
+        "Small DnCNN": (ModelType.SMALL_DNCNN, "checkpoint_small_dncnn.pth"),
+        "Strong DnCNN (Gaussian)": (ModelType.STRONG_DNCNN, "checkpoint_strong_dncnn_gaussian.pth"),
+        "Strong DnCNN (Mixed)": (ModelType.STRONG_DNCNN, "checkpoint_strong_dncnn_mixed.pth"),
     }
 
     loaded_neural_models: Dict[str, Tuple[nn.Module, float]] = {}

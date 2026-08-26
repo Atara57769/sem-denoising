@@ -17,6 +17,7 @@ from sem_denoising.data import (
     load_image,
 )
 from sem_denoising.models import build_model
+from sem_denoising.models import build_model, ModelType
 from sem_denoising.training import (
     train_model,
     save_checkpoint,
@@ -98,6 +99,10 @@ def run_training(config: PipelineConfig):
         ("Small DnCNN (Gaussian)", "small_dncnn", loader_train_gauss, loader_val_gauss, "checkpoint_small_dncnn.pth"),
         ("Strong DnCNN (Gaussian)", "strong_dncnn", loader_train_gauss, loader_val_gauss, "checkpoint_strong_dncnn_gaussian.pth"),
         ("Strong DnCNN (Mixed)", "strong_dncnn", loader_train_mixed, loader_val_mixed, "checkpoint_strong_dncnn_mixed.pth"),
+        ("Direct CNN (Gaussian)", ModelType.DIRECT_CNN, loader_train_gauss, loader_val_gauss, "checkpoint_direct_cnn.pth"),
+        ("Small DnCNN (Gaussian)", ModelType.SMALL_DNCNN, loader_train_gauss, loader_val_gauss, "checkpoint_small_dncnn.pth"),
+        ("Strong DnCNN (Gaussian)", ModelType.STRONG_DNCNN, loader_train_gauss, loader_val_gauss, "checkpoint_strong_dncnn_gaussian.pth"),
+        ("Strong DnCNN (Mixed)", ModelType.STRONG_DNCNN, loader_train_mixed, loader_val_mixed, "checkpoint_strong_dncnn_mixed.pth"),
     ]
 
     # Sample reference image for reproducibility check

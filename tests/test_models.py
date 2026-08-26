@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 from sem_denoising.models import (
     DnCNN,
+    ModelType,
     build_model,
     count_parameters,
     CLASSICAL_METHODS,
@@ -19,7 +20,7 @@ def test_classical_methods():
 
 
 def test_dncnn_forward_returns_residual_directly():
-    model = DnCNN(depth=5, num_channels=32, use_bn=False, act_type="leaky_relu")
+    model = DnCNN(depth=5, num_channels=32, use_bn=False, act_type="leaky_relu", residual=True)
     inp = torch.rand(2, 1, 64, 64)
     residual = model(inp)
     assert residual.shape == (2, 1, 64, 64)
@@ -32,8 +33,8 @@ def test_dncnn_forward_returns_residual_directly():
 
 
 def test_dncnn_small_and_strong_instantiation():
-    small = DnCNN(depth=5, num_channels=32, use_bn=True, act_type="leaky_relu")
-    strong = DnCNN(depth=17, num_channels=64, use_bn=True, act_type="relu")
+    small = DnCNN(depth=5, num_channels=32, use_bn=True, act_type="leaky_relu", residual=True)
+    strong = DnCNN(depth=17, num_channels=64, use_bn=True, act_type="relu", residual=True)
 
     inp = torch.rand(1, 1, 32, 32)
     res_s = small(inp)
@@ -46,13 +47,15 @@ def test_dncnn_small_and_strong_instantiation():
 
 
 def test_model_registry_builder():
-    m_direct = build_model("direct_cnn")
+    # Build using ModelType Enum
+    m_direct = build_model(ModelType.DIRECT_CNN)
     assert isinstance(m_direct, DnCNN)
     assert m_direct.depth == 5
     assert m_direct.num_channels == 32
     assert m_direct.use_bn is False
     assert m_direct.residual is False
 
+    # Build using string key
     m_small = build_model("small_dncnn")
     assert isinstance(m_small, DnCNN)
     assert m_small.depth == 5
@@ -60,7 +63,8 @@ def test_model_registry_builder():
     assert m_small.use_bn is True
     assert m_small.residual is True
 
-    m_strong = build_model("strong_dncnn")
+    # Build using ModelType Enum
+    m_strong = build_model(ModelType.STRONG_DNCNN)
     assert isinstance(m_strong, DnCNN)
     assert m_strong.depth == 17
     assert m_strong.num_channels == 64
