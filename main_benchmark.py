@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """
-Main execution entry point for the SEM Image Denoising Pipeline.
+Main benchmarking entry point for SEM Image Denoising Pipeline.
+Usage:
+    python main_benchmark.py --config configs/default_config.yaml
 """
 
 import sys
@@ -11,7 +13,7 @@ src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "src")
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-from sem_denoising.cli import main
+from sem_denoising.cli_benchmark import main
 
 if __name__ == "__main__":
     main()

@@ -4,7 +4,6 @@ Comprehensive benchmarking engine for classical and neural SEM denoising baselin
 
 import os
 import glob
-import time
 from typing import Dict, List, Any, Optional, Tuple
 import numpy as np
 import pandas as pd
@@ -15,7 +14,6 @@ try:
 except ImportError:
     def tqdm(iterable, **kwargs):
         return iterable
-
 from sem_denoising.data.loader import get_clean_reference_path, load_image
 from sem_denoising.models.classical import CLASSICAL_METHODS
 from sem_denoising.models.registry import count_parameters

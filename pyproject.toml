@@ -27,7 +27,8 @@ dev = [
 ]
 
 [project.scripts]
-sem-denoise = "sem_denoising.cli:main"
+sem-train = "sem_denoising.cli_train:main"
+sem-benchmark = "sem_denoising.cli_benchmark:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

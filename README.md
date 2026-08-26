@@ -36,9 +36,11 @@ project/
 │       ├── models/           # Classical, direct, residual, DnCNN & registry
 │       ├── training/         # Unified trainer & checkpoint manager
 │       ├── experiments/      # Benchmarking runner & 4-panel visualizer
-│       └── cli.py            # CLI entrypoint
+│       ├── cli_train.py      # Dedicated training CLI
+│       └── cli_benchmark.py  # Dedicated benchmarking CLI
 ├── tests/                    # Comprehensive unit tests
-└── main.py                   # High-level runner script
+├── main_train.py             # Training execution entry point
+└── main_benchmark.py         # Benchmarking execution entry point
 ```
 
 ## Quickstart
@@ -52,12 +54,12 @@ pip install -e .
 
 1. **Train All Models**:
    ```bash
-   python main.py train --config configs/default_config.yaml
+   python main_train.py --config configs/default_config.yaml
    ```
 
 2. **Benchmark Test Set (Set 5)**:
    ```bash
-   python main.py benchmark --config configs/default_config.yaml
+   python main_benchmark.py --config configs/default_config.yaml
    ```
 
 3. **Run Unit Tests**:
