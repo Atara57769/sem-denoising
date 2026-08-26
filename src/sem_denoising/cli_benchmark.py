@@ -27,38 +27,17 @@ def build_parser() -> argparse.ArgumentParser:
         default="configs/default_config.yaml",
         help="Path to YAML configuration file",
     )
-    parser.add_argument(
-        "--no-classical",
-        action="store_true",
-        help="Exclude classical filters (Gaussian, NLM, Wavelet) from benchmark",
-    )
-    parser.add_argument(
-        "--max-images",
-        type=int,
-        default=None,
-        help="Maximum test images to evaluate (for fast test runs)",
-    )
-    parser.add_argument(
-        "--device",
-        type=str,
-        default=None,
-        help="Override evaluation device ('cpu' or 'cuda')",
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=str,
-        default=None,
-        help="Override output directory for plots and CSVs",
-    )
     return parser
 
 
-def run_benchmark(config: PipelineConfig, no_classical: bool = False, max_images=None, device_override=None, output_dir_override=None):
-    """Run comparative benchmark against test set and generate summary plots/CSVs."""
+def run_benchmark(config: PipelineConfig):
+    """Run comparative benchmark against test set and generate summary plots/CSVs using configuration settings."""
     print("=== EXECUTING COMPARATIVE BENCHMARK ===")
     ckpt_dir = config.training.checkpoint_dir
-    device = device_override or config.training.device
-    output_dir = output_dir_override or config.evaluation.output_dir
+    device = config.training.device
+    output_dir = config.evaluation.output_dir
+    include_classical = config.evaluation.include_classical
+    max_images = config.evaluation.max_images
     os.makedirs(output_dir, exist_ok=True)
 
     models_to_bench = {
@@ -96,7 +75,7 @@ def run_benchmark(config: PipelineConfig, no_classical: bool = False, max_images
     runner = BenchmarkRunner(config)
     full_df, summary_df = runner.run(
         neural_models=loaded_neural_models,
-        include_classical=not no_classical,
+        include_classical=include_classical,
         max_images=max_images,
     )
 
@@ -115,13 +94,7 @@ def main():
         print(f"Notice: Config file '{args.config}' not found, using default configuration.")
         config = PipelineConfig()
 
-    run_benchmark(
-        config=config,
-        no_classical=args.no_classical,
-        max_images=args.max_images,
-        device_override=args.device,
-        output_dir_override=args.output_dir,
-    )
+    run_benchmark(config=config)
 
 
 if __name__ == "__main__":

@@ -41,6 +41,8 @@ class EvaluationConfig:
     output_dir: str = "outputs"
     results_csv: str = "stronger_test_results.csv"
     plot_filename: str = "benchmark_comparison_fig.png"
+    include_classical: bool = True
+    max_images: Optional[int] = None
 
 
 @dataclass
@@ -93,6 +95,8 @@ class PipelineConfig:
                 "output_dir": self.evaluation.output_dir,
                 "results_csv": self.evaluation.results_csv,
                 "plot_filename": self.evaluation.plot_filename,
+                "include_classical": self.evaluation.include_classical,
+                "max_images": self.evaluation.max_images,
             },
         }
 

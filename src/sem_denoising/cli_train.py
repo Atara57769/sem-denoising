@@ -37,43 +37,19 @@ def build_parser() -> argparse.ArgumentParser:
         default="configs/default_config.yaml",
         help="Path to YAML configuration file",
     )
-    parser.add_argument(
-        "--epochs",
-        type=int,
-        default=None,
-        help="Override training epochs from config",
-    )
-    parser.add_argument(
-        "--lr",
-        type=float,
-        default=None,
-        help="Override learning rate from config",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=None,
-        help="Override batch size from config",
-    )
-    parser.add_argument(
-        "--device",
-        type=str,
-        default=None,
-        help="Override execution device ('cpu' or 'cuda')",
-    )
     return parser
 
 
-def run_training(config: PipelineConfig, epochs_override=None, lr_override=None, batch_size_override=None, device_override=None):
-    """Train all learned models, save checkpoints, and assert reproducibility."""
+def run_training(config: PipelineConfig):
+    """Train all learned models, save checkpoints, and assert reproducibility using configuration settings."""
     print("=== EXECUTING FULL DATASET TRAINING ===")
     np.random.seed(config.training.seed)
     torch.manual_seed(config.training.seed)
 
-    device = device_override or config.training.device
-    epochs = epochs_override or config.training.epochs
-    lr = lr_override or config.training.lr
-    batch_size = batch_size_override or config.training.batch_size
+    device = config.training.device
+    epochs = config.training.epochs
+    lr = config.training.lr
+    batch_size = config.training.batch_size
 
     # 1. Prepare Datasets & Loaders
     g_sigma = config.noise.gaussian.get("sigma", 0.10)
@@ -164,13 +140,7 @@ def main():
         print(f"Notice: Config file '{args.config}' not found, using default configuration.")
         config = PipelineConfig()
 
-    run_training(
-        config=config,
-        epochs_override=args.epochs,
-        lr_override=args.lr,
-        batch_size_override=args.batch_size,
-        device_override=args.device,
-    )
+    run_training(config=config)
 
 
 if __name__ == "__main__":
