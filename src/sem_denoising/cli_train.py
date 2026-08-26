@@ -95,13 +95,10 @@ def run_training(config: PipelineConfig):
     os.makedirs(ckpt_dir, exist_ok=True)
 
     train_plan = [
-        ("Direct CNN (Gaussian)", "direct_cnn", loader_train_gauss, loader_val_gauss, "checkpoint_direct_cnn.pth"),
-        ("Small DnCNN (Gaussian)", "small_dncnn", loader_train_gauss, loader_val_gauss, "checkpoint_small_dncnn.pth"),
-        ("Strong DnCNN (Gaussian)", "strong_dncnn", loader_train_gauss, loader_val_gauss, "checkpoint_strong_dncnn_gaussian.pth"),
-        ("Strong DnCNN (Mixed)", "strong_dncnn", loader_train_mixed, loader_val_mixed, "checkpoint_strong_dncnn_mixed.pth"),
         ("Direct CNN (Gaussian)", ModelType.DIRECT_CNN, loader_train_gauss, loader_val_gauss, "checkpoint_direct_cnn.pth"),
         ("Small DnCNN (Gaussian)", ModelType.SMALL_DNCNN, loader_train_gauss, loader_val_gauss, "checkpoint_small_dncnn.pth"),
         ("Strong DnCNN (Gaussian)", ModelType.STRONG_DNCNN, loader_train_gauss, loader_val_gauss, "checkpoint_strong_dncnn_gaussian.pth"),
+        ("Skip DnCNN (Gaussian)", ModelType.SKIP_DNCNN, loader_train_gauss, loader_val_gauss, "checkpoint_skip_dncnn.pth"),
         ("Strong DnCNN (Mixed)", ModelType.STRONG_DNCNN, loader_train_mixed, loader_val_mixed, "checkpoint_strong_dncnn_mixed.pth"),
     ]
 

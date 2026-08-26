@@ -12,11 +12,11 @@ A clean, modular, research-ready Python library and benchmarking suite for Scann
   - Non-Local Means (NLM)
   - Wavelet BayesShrink Soft-Thresholding
 - **Learned Neural Architecture**:
-  - `DnCNN`: Single unified convolutional neural network architecture supporting both direct mapping and residual learning via a `residual: bool` flag:
+  - `DnCNN`: Single unified convolutional neural network architecture supporting direct mapping, residual learning (`residual: bool`), and feature skip connections (`use_skip: bool`):
     - `direct_cnn`: 5 layers, 32 channels, direct mapping (`residual=False`, `use_bn=False`, LeakyReLU)
     - `small_dncnn`: 5 layers, 32 channels, residual learning (`residual=True`, `use_bn=True`, LeakyReLU)
     - `strong_dncnn`: 17 layers, 64 channels, residual learning (`residual=True`, `use_bn=True`, ReLU)
-- **Extensible Architecture**: Registry/factory patterns for dynamic instantiation of models and noise models.
+    - `skip_dncnn`: 17 layers, 64 channels, residual learning with feature skip connection (`use_skip=True`)
 - **Extensible Architecture**: Type-safe `ModelType` enum and factory patterns for dynamic model instantiation.
 - **Unified Evaluation Suite**: Evaluates MSE, PSNR, SSIM, and exact CPU execution latency.
 - **Reproducibility & Verification**: Full checkpoint save/reload validation asserting $\Delta = 0.0$.

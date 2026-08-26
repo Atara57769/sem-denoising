@@ -17,6 +17,7 @@ class ModelType(str, Enum):
     RESIDUAL_CNN = "residual_cnn"
     SMALL_DNCNN = "small_dncnn"
     STRONG_DNCNN = "strong_dncnn"
+    SKIP_DNCNN = "skip_dncnn"
     DNCNN = "dncnn"
 
 
@@ -34,6 +35,8 @@ MODEL_REGISTRY: Dict[ModelType, Callable[..., DnCNN]] = {
     ModelType.SMALL_DNCNN: lambda **kwargs: DnCNN(depth=5, num_channels=32, use_bn=True, act_type="leaky_relu", residual=True, **kwargs),
     # 17-layer Strong DnCNN (residual=True, with batch norm)
     ModelType.STRONG_DNCNN: lambda **kwargs: DnCNN(depth=17, num_channels=64, use_bn=True, act_type="relu", residual=True, **kwargs),
+    # 17-layer DnCNN with internal feature skip connection (residual=True, with batch norm, use_skip=True)
+    ModelType.SKIP_DNCNN: lambda **kwargs: DnCNN(depth=17, num_channels=64, use_bn=True, act_type="relu", residual=True, use_skip=True, **kwargs),
     # Default DnCNN instance
     ModelType.DNCNN: lambda **kwargs: DnCNN(**kwargs),
 }
@@ -45,7 +48,7 @@ def build_model(model_name: Union[ModelType, str] = ModelType.DNCNN, **kwargs) -
     Every model is created from the single DnCNN class with specific architecture parameters.
 
     Args:
-        model_name: ModelType enum or string representation ('direct_cnn', 'small_dncnn', etc.).
+        model_name: ModelType enum or string representation ('direct_cnn', 'small_dncnn', 'skip_dncnn', etc.).
         kwargs: Additional model parameter overrides to pass to DnCNN.
 
     Returns:

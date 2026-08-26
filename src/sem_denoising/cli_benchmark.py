@@ -42,13 +42,10 @@ def run_benchmark(config: PipelineConfig):
     os.makedirs(output_dir, exist_ok=True)
 
     models_to_bench = {
-        "Direct CNN": ("direct_cnn", "checkpoint_direct_cnn.pth"),
-        "Small DnCNN": ("small_dncnn", "checkpoint_small_dncnn.pth"),
-        "Strong DnCNN (Gaussian)": ("strong_dncnn", "checkpoint_strong_dncnn_gaussian.pth"),
-        "Strong DnCNN (Mixed)": ("strong_dncnn", "checkpoint_strong_dncnn_mixed.pth"),
         "Direct CNN": (ModelType.DIRECT_CNN, "checkpoint_direct_cnn.pth"),
         "Small DnCNN": (ModelType.SMALL_DNCNN, "checkpoint_small_dncnn.pth"),
         "Strong DnCNN (Gaussian)": (ModelType.STRONG_DNCNN, "checkpoint_strong_dncnn_gaussian.pth"),
+        "Skip DnCNN (Gaussian)": (ModelType.SKIP_DNCNN, "checkpoint_skip_dncnn.pth"),
         "Strong DnCNN (Mixed)": (ModelType.STRONG_DNCNN, "checkpoint_strong_dncnn_mixed.pth"),
     }
 

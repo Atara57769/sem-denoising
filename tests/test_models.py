@@ -46,6 +46,19 @@ def test_dncnn_small_and_strong_instantiation():
     assert count_parameters(strong) == 556097
 
 
+def test_dncnn_with_skip_connection():
+    model = DnCNN(depth=17, num_channels=64, use_bn=True, act_type="relu", residual=True, use_skip=True)
+    assert model.use_skip is True
+    inp = torch.rand(2, 1, 32, 32)
+    out = model(inp)
+    assert out.shape == (2, 1, 32, 32)
+    assert count_parameters(model) == 556097
+
+    m_skip = build_model(ModelType.SKIP_DNCNN)
+    assert isinstance(m_skip, DnCNN)
+    assert m_skip.use_skip is True
+
+
 def test_model_registry_builder():
     # Build using ModelType Enum
     m_direct = build_model(ModelType.DIRECT_CNN)
