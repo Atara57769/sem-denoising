@@ -1,6 +1,6 @@
 """
 Unified Denoising Convolutional Neural Network (DnCNN) architecture.
-A single, highly configurable class supporting small (5L, 32ch) to deep research (17L, 64ch) models.
+A single, highly configurable class supporting both residual noise estimation and direct mapping.
 """
 
 from typing import Optional
@@ -10,10 +10,12 @@ import torch.nn as nn
 
 class DnCNN(nn.Module):
     """
-    Unified DnCNN architecture (Zhang et al.).
+    Unified DnCNN architecture.
     
-    Residual formulation estimating the noise component with batch normalization
-    and configurable activation function and depth.
+    Supports both:
+      - Residual learning (residual=True): network outputs noise residual,
+        clean image is recovered via: x_clean = x - model(x)
+      - Direct mapping (residual=False): network directly outputs estimated clean image
     """
 
     def __init__(
@@ -25,12 +27,16 @@ class DnCNN(nn.Module):
         use_bn: bool = True,
         act_type: str = "relu",
         leaky_slope: float = 0.2,
+        residual: bool = True,
     ):
-        super(DnCNN, self).__init__()
+        super().__init__()
         self.depth = depth
         self.num_channels = num_channels
+        self.in_channels = in_channels
+        self.out_channels = out_channels
         self.use_bn = use_bn
         self.act_type = act_type
+        self.residual = residual
 
         def get_activation():
             if act_type.lower() == "leaky_relu":
@@ -59,27 +65,13 @@ class DnCNN(nn.Module):
         self.net = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        residual = self.net(x)
-        return torch.clamp(x - residual, 0.0, 1.0)
-
-    @classmethod
-    def create_small(cls, depth: int = 5, num_channels: int = 32) -> "DnCNN":
-        """Preset for 5-layer lightweight Small DnCNN with LeakyReLU."""
-        return cls(
-            depth=depth,
-            num_channels=num_channels,
-            use_bn=True,
-            act_type="leaky_relu",
-            leaky_slope=0.2,
-        )
-
-    @classmethod
-    def create_strong(cls, depth: int = 17, num_channels: int = 64) -> "DnCNN":
-        """Preset for 17-layer standard research Strong DnCNN with ReLU."""
-        return cls(
-            depth=depth,
-            num_channels=num_channels,
-            use_bn=True,
-            act_type="relu",
-        )
-
+        """
+        Forward pass returning raw network output directly.
+        
+        Args:
+            x: Input noisy image tensor (B, C, H, W).
+            
+        Returns:
+            Network output tensor (B, C, H, W).
+        """
+        return self.net(x)

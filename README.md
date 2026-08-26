@@ -11,10 +11,11 @@ A clean, modular, research-ready Python library and benchmarking suite for Scann
   - Spatial Gaussian Smoothing Filter
   - Non-Local Means (NLM)
   - Wavelet BayesShrink Soft-Thresholding
-- **Learned Neural Architectures**:
-  - `DirectPredictionCNN` (5-layer direct mapping $\hat{x} = \text{CNN}(y)$)
-  - `ResidualPredictionCNN` (5-layer residual mapping $\hat{x} = y - \text{CNN}(y)$)
-  - `DnCNN` (Unified configurable architecture supporting both 5-layer Small DnCNN and 17-layer Strong DnCNN with batch normalization)
+- **Learned Neural Architecture**:
+  - `DnCNN`: Single unified convolutional neural network architecture supporting both direct mapping and residual learning via a `residual: bool` flag:
+    - `direct_cnn`: 5 layers, 32 channels, direct mapping (`residual=False`, `use_bn=False`, LeakyReLU)
+    - `small_dncnn`: 5 layers, 32 channels, residual learning (`residual=True`, `use_bn=True`, LeakyReLU)
+    - `strong_dncnn`: 17 layers, 64 channels, residual learning (`residual=True`, `use_bn=True`, ReLU)
 - **Extensible Architecture**: Registry/factory patterns for dynamic instantiation of models and noise models.
 - **Unified Evaluation Suite**: Evaluates MSE, PSNR, SSIM, and exact CPU execution latency.
 - **Reproducibility & Verification**: Full checkpoint save/reload validation asserting $\Delta = 0.0$.
@@ -33,7 +34,7 @@ project/
 │       ├── noise.py          # Consolidated noise models
 │       ├── metrics.py        # Evaluator (MSE, PSNR, SSIM, Timer)
 │       ├── data/             # Dataset, patch extraction, image loader
-│       ├── models/           # Classical, direct, residual, DnCNN & registry
+│       ├── models/           # Classical baselines, unified DnCNN & registry
 │       ├── training/         # Unified trainer & checkpoint manager
 │       ├── experiments/      # Benchmarking runner & visualizer
 │       ├── cli_train.py      # Training CLI module

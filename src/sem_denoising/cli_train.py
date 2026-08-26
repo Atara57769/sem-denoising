@@ -95,7 +95,6 @@ def run_training(config: PipelineConfig):
 
     train_plan = [
         ("Direct CNN (Gaussian)", "direct_cnn", loader_train_gauss, loader_val_gauss, "checkpoint_direct_cnn.pth"),
-        ("Residual CNN (Gaussian)", "residual_cnn", loader_train_gauss, loader_val_gauss, "checkpoint_residual_cnn.pth"),
         ("Small DnCNN (Gaussian)", "small_dncnn", loader_train_gauss, loader_val_gauss, "checkpoint_small_dncnn.pth"),
         ("Strong DnCNN (Gaussian)", "strong_dncnn", loader_train_gauss, loader_val_gauss, "checkpoint_strong_dncnn_gaussian.pth"),
         ("Strong DnCNN (Mixed)", "strong_dncnn", loader_train_mixed, loader_val_mixed, "checkpoint_strong_dncnn_mixed.pth"),

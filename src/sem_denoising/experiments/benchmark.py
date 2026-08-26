@@ -21,9 +21,14 @@ from sem_denoising.metrics import evaluate_predictions, Timer
 from sem_denoising.config import PipelineConfig
 
 
-def run_neural_inference(model: nn.Module,noisy_img: np.ndarray,device: str = "cpu",) -> Tuple[np.ndarray, float]:
+def run_neural_inference(
+    model: nn.Module,
+    noisy_img: np.ndarray,
+    device: str = "cpu",
+) -> Tuple[np.ndarray, float]:
     """
     Run neural model inference on a single image and record CPU/device latency in ms.
+    Denoised image is recovered by subtracting predicted residual: img - model(img).
 
     Args:
         model: PyTorch neural model.
@@ -40,9 +45,10 @@ def run_neural_inference(model: nn.Module,noisy_img: np.ndarray,device: str = "c
     with Timer() as timer:
         with torch.no_grad():
             out = model(inp)
+            denoised = (inp - out) if model.residual else out
 
-    denoised_img = out.squeeze().cpu().numpy()
-    return np.clip(denoised_img, 0.0, 1.0).astype(np.float32), timer.elapsed_ms
+    denoised_img = torch.clamp(denoised, 0.0, 1.0).squeeze().cpu().numpy()
+    return denoised_img.astype(np.float32), timer.elapsed_ms
 
 
 def evaluate_dataset(

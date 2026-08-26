@@ -24,13 +24,15 @@ def train_one_epoch(
     """Train model for a single epoch and return average training loss."""
     model.train()
     total_loss = 0.0
+
     for noisy_b, clean_b in dataloader:
         noisy_b = noisy_b.to(device)
         clean_b = clean_b.to(device)
 
         optimizer.zero_grad()
-        pred_b = model(noisy_b)
-        loss = criterion(pred_b, clean_b)
+        out = model(noisy_b)
+        pred_clean = (noisy_b - out) if model.residual else out
+        loss = criterion(pred_clean, clean_b)
         loss.backward()
         optimizer.step()
 
@@ -48,13 +50,15 @@ def validate_one_epoch(
     """Validate model for a single epoch and return average validation loss."""
     model.eval()
     total_loss = 0.0
+
     with torch.no_grad():
         for noisy_b, clean_b in dataloader:
             noisy_b = noisy_b.to(device)
             clean_b = clean_b.to(device)
 
-            pred_b = model(noisy_b)
-            loss = criterion(pred_b, clean_b)
+            out = model(noisy_b)
+            pred_clean = (noisy_b - out) if model.residual else out
+            loss = criterion(pred_clean, clean_b)
             total_loss += loss.item() * noisy_b.size(0)
 
     return total_loss / len(dataloader.dataset)

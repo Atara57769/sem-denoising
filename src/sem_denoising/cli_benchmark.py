@@ -42,7 +42,6 @@ def run_benchmark(config: PipelineConfig):
 
     models_to_bench = {
         "Direct CNN": ("direct_cnn", "checkpoint_direct_cnn.pth"),
-        "Residual CNN": ("residual_cnn", "checkpoint_residual_cnn.pth"),
         "Small DnCNN": ("small_dncnn", "checkpoint_small_dncnn.pth"),
         "Strong DnCNN (Gaussian)": ("strong_dncnn", "checkpoint_strong_dncnn_gaussian.pth"),
         "Strong DnCNN (Mixed)": ("strong_dncnn", "checkpoint_strong_dncnn_mixed.pth"),
