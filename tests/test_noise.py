@@ -5,6 +5,7 @@ from sem_denoising.noise import (
     add_poisson_noise,
     add_mixed_noise,
     get_noise_fn,
+    NoiseRegime,
     NOISE_REGIMES,
 )
 
@@ -37,10 +38,19 @@ def test_mixed_noise(clean_image):
 
 
 def test_get_noise_fn(clean_image):
-    fn = get_noise_fn("gaussian", sigma=0.05)
-    noisy = fn(clean_image)
-    assert noisy.shape == clean_image.shape
+    # Test string input
+    fn_str = get_noise_fn("gaussian", sigma=0.05)
+    noisy_str = fn_str(clean_image)
+    assert noisy_str.shape == clean_image.shape
+
+    # Test Enum input
+    fn_enum = get_noise_fn(NoiseRegime.POISSON, peak=40.0)
+    noisy_enum = fn_enum(clean_image)
+    assert noisy_enum.shape == clean_image.shape
 
     with pytest.raises(ValueError):
         get_noise_fn("unknown_regime")
+
+    with pytest.raises(ValueError):
+        get_noise_fn(12345)
 
