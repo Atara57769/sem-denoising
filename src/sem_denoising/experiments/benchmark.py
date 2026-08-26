@@ -39,13 +39,12 @@ def run_neural_inference(model: nn.Module,noisy_img: np.ndarray,device: str = "c
     model.to(device)
     inp = torch.from_numpy(noisy_img).unsqueeze(0).unsqueeze(0).float().to(device)
 
-    start = time.perf_counter()
-    with torch.no_grad():
-        out = model(inp)
-    elapsed_ms = (time.perf_counter() - start) * 1000.0
+    with Timer() as timer:
+        with torch.no_grad():
+            out = model(inp)
 
     denoised_img = out.squeeze().cpu().numpy()
-    return np.clip(denoised_img, 0.0, 1.0).astype(np.float32), elapsed_ms
+    return np.clip(denoised_img, 0.0, 1.0).astype(np.float32), timer.elapsed_ms
 
 
 def evaluate_dataset(
