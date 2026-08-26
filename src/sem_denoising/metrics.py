@@ -68,3 +68,4 @@ class Timer:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.elapsed_ms = (time.perf_counter() - self.start_time) * 1000.0
+

@@ -77,3 +77,4 @@ CLASSICAL_METHODS = {
     "Non-Local Means": denoise_nlm,
     "Wavelet (BayesShrink)": denoise_wavelet_baseline,
 }
+

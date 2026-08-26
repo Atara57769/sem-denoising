@@ -40,3 +40,4 @@ def build_model(model_name: str, **kwargs) -> nn.Module:
     if key not in MODEL_REGISTRY:
         raise ValueError(f"Unknown model name '{model_name}'. Available: {list(MODEL_REGISTRY.keys())}")
     return MODEL_REGISTRY[key](**kwargs)
+

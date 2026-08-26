@@ -57,6 +57,7 @@ def evaluate_dataset(
     gt_clean: np.ndarray,
     neural_models: Dict[str, Tuple[nn.Module, float]],
     include_classical: bool = True,
+    max_images: Optional[int] = None,
     device: str = "cpu",
     verbose: bool = True,
 ) -> pd.DataFrame:
@@ -68,12 +69,16 @@ def evaluate_dataset(
         gt_clean: Ground truth clean reference image.
         neural_models: Dict mapping model_name -> (model_instance, checkpoint_size_kb).
         include_classical: Whether to run classical baselines.
+        max_images: Optional maximum number of images to evaluate.
         device: 'cpu' or 'cuda'.
         verbose: Whether to show progress bar.
 
     Returns:
         DataFrame containing per-image evaluation results.
     """
+    if max_images is not None and max_images > 0:
+        image_paths = image_paths[:max_images]
+
     records: List[Dict[str, Any]] = []
     pbar = tqdm(image_paths, desc="Benchmarking Test Images", disable=not verbose)
 
@@ -127,6 +132,7 @@ class BenchmarkRunner:
         self,
         neural_models: Dict[str, Tuple[nn.Module, float]],
         include_classical: bool = True,
+        max_images: Optional[int] = None,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Execute full benchmark on configured test set, save CSV, and return (full_df, summary_df).
@@ -150,6 +156,7 @@ class BenchmarkRunner:
             gt_clean=gt_clean,
             neural_models=neural_models,
             include_classical=include_classical,
+            max_images=max_images,
             device=self.config.training.device,
         )
 
@@ -177,3 +184,4 @@ class BenchmarkRunner:
         print(summary_df.to_string(index=False))
 
         return df_all, summary_df
+

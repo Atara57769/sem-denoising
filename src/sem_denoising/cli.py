@@ -188,6 +188,7 @@ def cmd_benchmark(args: argparse.Namespace, config: PipelineConfig):
     full_df, summary_df = runner.run(
         neural_models=loaded_neural_models,
         include_classical=not args.no_classical,
+        max_images=args.max_images,
     )
 
     plot_path = os.path.join(config.evaluation.output_dir, config.evaluation.plot_filename)
@@ -197,25 +198,46 @@ def cmd_benchmark(args: argparse.Namespace, config: PipelineConfig):
 
 def build_parser() -> argparse.ArgumentParser:
     """Build command line argument parser."""
+    config_parser = argparse.ArgumentParser(add_help=False)
+    config_parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/default_config.yaml",
+        help="Path to config YAML file",
+    )
+
     parser = argparse.ArgumentParser(
         description="AMAT-2 SEM Denoising Pipeline CLI",
+        parents=[config_parser],
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--config", type=str, default="configs/default_config.yaml", help="Path to config YAML file")
 
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
     # Sanity check command
-    p_sanity = subparsers.add_parser("sanity-check", help="Run overfit sanity check on single patch")
+    p_sanity = subparsers.add_parser(
+        "sanity-check",
+        parents=[config_parser],
+        help="Run overfit sanity check on single patch",
+    )
     p_sanity.add_argument("--epochs", type=int, default=50, help="Sanity check iterations")
 
     # Train command
-    p_train = subparsers.add_parser("train", help="Train all neural models and save checkpoints")
+    p_train = subparsers.add_parser(
+        "train",
+        parents=[config_parser],
+        help="Train all neural models and save checkpoints",
+    )
     p_train.add_argument("--epochs", type=int, default=None, help="Override training epochs")
 
     # Benchmark command
-    p_bench = subparsers.add_parser("benchmark", help="Benchmark models on test set and plot results")
+    p_bench = subparsers.add_parser(
+        "benchmark",
+        parents=[config_parser],
+        help="Benchmark models on test set and plot results",
+    )
     p_bench.add_argument("--no-classical", action="store_true", help="Exclude classical filters from benchmark")
+    p_bench.add_argument("--max-images", type=int, default=None, help="Maximum test images to evaluate (for fast runs)")
 
     return parser
 

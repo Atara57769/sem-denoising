@@ -32,3 +32,4 @@ def extract_patches(img: np.ndarray, patch_size: int = 64, stride: int = 32) -> 
         raise ValueError("No patches could be extracted with the given parameters.")
 
     return np.array(patches, dtype=np.float32)
+

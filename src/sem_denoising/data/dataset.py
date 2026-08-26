@@ -53,3 +53,4 @@ class SEMPatchDataset(Dataset):
         noisy_tensor = torch.from_numpy(n_patch).unsqueeze(0).float()
         clean_tensor = torch.from_numpy(c_patch).unsqueeze(0).float()
         return noisy_tensor, clean_tensor
+

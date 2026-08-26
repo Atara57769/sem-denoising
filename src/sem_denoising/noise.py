@@ -41,3 +41,4 @@ def get_noise_fn(regime: str, **kwargs) -> Callable[[np.ndarray], np.ndarray]:
     
     base_fn = NOISE_REGIMES[regime_key]
     return lambda img: base_fn(img, **kwargs)
+

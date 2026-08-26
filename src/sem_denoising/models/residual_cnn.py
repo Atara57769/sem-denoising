@@ -40,3 +40,4 @@ class ResidualPredictionCNN(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         residual = self.net(x)
         return torch.clamp(x - residual, 0.0, 1.0)
+

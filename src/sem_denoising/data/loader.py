@@ -49,3 +49,4 @@ def load_image(filepath: str) -> np.ndarray:
     """Load and normalize a grayscale image from disk."""
     raw = read_image_grayscale(filepath)
     return normalize_minmax(raw)
+

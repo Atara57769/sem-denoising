@@ -78,3 +78,4 @@ def run_all_models_sanity_check(
         print(f"  Model: {name:20s} | Initial: {init_loss:.6f} -> Final: {final_loss:.6f} ({reduction:.1f}% reduction)")
 
     return results
+

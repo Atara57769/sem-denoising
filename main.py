@@ -15,3 +15,4 @@ from sem_denoising.cli import main
 
 if __name__ == "__main__":
     main()
+

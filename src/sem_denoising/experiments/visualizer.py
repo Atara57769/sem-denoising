@@ -66,3 +66,4 @@ def plot_benchmark_results(
         print(f"Saved comparative benchmarking chart figure: {output_filepath}")
 
     return fig
+

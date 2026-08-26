@@ -32,3 +32,4 @@ class DirectPredictionCNN(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return torch.clamp(self.net(x), 0.0, 1.0)
+

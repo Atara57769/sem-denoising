@@ -98,3 +98,4 @@ class PipelineConfig:
 
     def to_json(self, indent: int = 2) -> str:
         return json.dumps(self.to_dict(), indent=indent)
+

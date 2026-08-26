@@ -82,3 +82,4 @@ class DnCNN(nn.Module):
             use_bn=True,
             act_type="relu",
         )
+

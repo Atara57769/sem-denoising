@@ -112,3 +112,4 @@ def train_model(
             )
 
     return {"train_loss": train_history, "val_loss": val_history}
+
