@@ -1,0 +1,29 @@
+data:
+  data_root: "C:\\Users\\USER\\Desktop\\workspace\\AMAT_data"
+  train_sets: [1, 2]
+  val_sets: [3]
+  test_set: 5
+  patch_size: 64
+  stride: 32
+
+noise:
+  gaussian:
+    sigma: 0.10
+  poisson:
+    peak: 50.0
+  mixed:
+    sigma: 0.06
+    peak: 50.0
+
+training:
+  batch_size: 32
+  epochs: 3
+  lr: 0.001
+  seed: 42
+  device: "cpu"
+  checkpoint_dir: "checkpoints"
+
+evaluation:
+  output_dir: "outputs"
+  results_csv: "stronger_test_results.csv"
+  plot_filename: "benchmark_comparison_fig.png"

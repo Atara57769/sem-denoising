@@ -1,0 +1,71 @@
+# SEM Denoising Pipeline
+
+A clean, modular, research-ready Python library and benchmarking suite for Scanning Electron Microscope (SEM) image denoising across classical filters and learned deep convolutional neural networks.
+
+## Features
+
+- **Specimen-Safe Data Pipeline**: Clean NIST SEM dataset loader with independent train (Sets 1 & 2), validation (Set 3), and test (Set 5) splits.
+- **Physical Noise Modeling**: Configurable Gaussian (readout), Poisson (electron shot), and mixed Poisson-Gaussian degradation regimes.
+- **Classical Baselines**:
+  - Identity (No-op)
+  - Spatial Gaussian Smoothing Filter
+  - Non-Local Means (NLM)
+  - Wavelet BayesShrink Soft-Thresholding
+- **Learned Neural Architectures**:
+  - `DirectPredictionCNN` (5-layer direct mapping $\hat{x} = \text{CNN}(y)$)
+  - `ResidualPredictionCNN` (5-layer residual mapping $\hat{x} = y - \text{CNN}(y)$)
+  - `DnCNN` (Unified configurable architecture supporting both 5-layer Small DnCNN and 17-layer Strong DnCNN with batch normalization)
+- **Extensible Architecture**: Registry/factory patterns for dynamic instantiation of models and noise models.
+- **Unified Evaluation Suite**: Evaluates MSE, PSNR, SSIM, and exact CPU execution latency.
+- **Reproducibility & Verification**: Full checkpoint save/reload validation asserting $\Delta = 0.0$.
+- **CLI & Visualization**: Command-line interface for training, evaluation, sanity checking, and multi-metric plotting.
+
+## Project Structure
+
+```
+project/
+├── configs/                  # YAML experiment configurations
+│   ├── default_config.yaml
+│   └── fast_test_config.yaml
+├── src/
+│   └── sem_denoising/
+│       ├── config.py         # Dataclass configs & YAML loaders
+│       ├── noise.py          # Consolidated noise models
+│       ├── metrics.py        # Evaluator (MSE, PSNR, SSIM, Runtime)
+│       ├── data/             # Dataset, patch extraction, image loader
+│       ├── models/           # Classical, direct, residual, DnCNN & registry
+│       ├── training/         # Unified trainer, sanity check, checkpoint manager
+│       ├── experiments/      # Benchmarking runner & 4-panel visualizer
+│       └── cli.py            # CLI entrypoint
+├── tests/                    # Comprehensive unit tests
+└── main.py                   # High-level runner script
+```
+
+## Quickstart
+
+### Installation
+```bash
+pip install -e .
+```
+
+### CLI Usage
+
+1. **Run Overfit Sanity Check**:
+   ```bash
+   python main.py sanity-check --config configs/default_config.yaml
+   ```
+
+2. **Train All Models**:
+   ```bash
+   python main.py train --config configs/default_config.yaml
+   ```
+
+3. **Benchmark Test Set (Set 5)**:
+   ```bash
+   python main.py benchmark --config configs/default_config.yaml
+   ```
+
+4. **Run Unit Tests**:
+   ```bash
+   pytest tests/ -v
+   ```
