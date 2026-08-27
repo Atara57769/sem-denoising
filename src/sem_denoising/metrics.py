@@ -25,6 +25,20 @@ def compute_ssim(gt: np.ndarray, pred: np.ndarray, data_range: float = 1.0) -> f
     return float(ssim_func(gt, pred, data_range=data_range))
 
 
+def compute_sobel_mae(gt: np.ndarray, pred: np.ndarray) -> float:
+    """Compute Mean Absolute Error on Sobel gradient magnitude image."""
+    from scipy.ndimage import sobel
+    gx_gt = sobel(gt, axis=0)
+    gy_gt = sobel(gt, axis=1)
+    mag_gt = np.hypot(gx_gt, gy_gt)
+
+    gx_pr = sobel(pred, axis=0)
+    gy_pr = sobel(pred, axis=1)
+    mag_pr = np.hypot(gx_pr, gy_pr)
+
+    return float(np.mean(np.abs(mag_gt - mag_pr)))
+
+
 def evaluate_predictions(
     gt: np.ndarray,
     pred: np.ndarray,

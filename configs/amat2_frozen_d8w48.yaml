@@ -1,0 +1,64 @@
+# AMAT-2 Frozen Reference Configuration - TinyDnCNN D8/W48
+metadata:
+  model_id: "tiny_dncnn_d8w48_fp16"
+  architecture: "TinyDnCNN D8/W48"
+  version: "1.0.0"
+  status: "FROZEN"
+  description: "AMAT-2 selected engineering candidate: 8-layer, 48-channel residual DnCNN, FP32 training with FP16 whole-image inference."
+
+model:
+  depth: 8
+  num_channels: 48
+  in_channels: 1
+  out_channels: 1
+  use_bn: true
+  act_type: "relu"
+  residual: true
+  parameters: 125905
+  checkpoint_path: "checkpoints/checkpoint_tinydncnn_d8w48.pth"
+  precision: "fp16"
+  input_policy: "nchw_float32_normalized_0_1"
+  output_policy: "clip_0_1"
+
+data:
+  data_root: "C:\\Users\\USER\\Desktop\\workspace\\AMAT_data"
+  train_sets: [1, 2]
+  val_sets: [3]
+  test_set: 5
+  patch_size: 64
+  stride: 32
+
+noise_regimes:
+  gaussian:
+    sigma: 0.10
+  poisson:
+    peak: 50.0
+  mixed:
+    sigma: 0.06
+    peak: 50.0
+
+stress_conditions:
+  striping:
+    intensity: 0.08
+    line_frequency: 0.15
+  blur:
+    kernel_size: 5
+    sigma: 1.2
+  scan_drift:
+    amplitude: 4.0
+    frequency: 0.05
+  mixed_correlated:
+    noise_sigma: 0.05
+    striping_intensity: 0.05
+    drift_amplitude: 2.0
+
+evaluator:
+  evaluator_version: "AMAT-2_v1.0"
+  metrics: ["psnr", "ssim", "mse", "sobel_mae", "runtime_ms"]
+
+cost_reference_t4:
+  p50_latency_ms: 1.45
+  p95_latency_ms: 1.82
+  throughput_img_per_sec: 689.6
+  model_bytes_fp16: 251810
+  macs_per_512x512: 3300122624

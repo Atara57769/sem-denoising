@@ -18,6 +18,8 @@ class ModelType(str, Enum):
     SMALL_DNCNN = "small_dncnn"
     STRONG_DNCNN = "strong_dncnn"
     SKIP_DNCNN = "skip_dncnn"
+    TINY_DNCNN_D8W48 = "tiny_dncnn_d8w48"
+    DNCNN_D8W48 = "dncnn_d8w48"
     DNCNN = "dncnn"
 
 
@@ -37,6 +39,9 @@ MODEL_REGISTRY: Dict[ModelType, Callable[..., DnCNN]] = {
     ModelType.STRONG_DNCNN: lambda **kwargs: DnCNN(depth=17, num_channels=64, use_bn=True, act_type="relu", residual=True, **kwargs),
     # 17-layer DnCNN with internal feature skip connection (residual=True, with batch norm, use_skip=True)
     ModelType.SKIP_DNCNN: lambda **kwargs: DnCNN(depth=17, num_channels=64, use_bn=True, act_type="relu", residual=True, use_skip=True, **kwargs),
+    # 8-layer, 48-channel TinyDnCNN D8/W48 (AMAT-2 primary candidate, 125,905 params)
+    ModelType.TINY_DNCNN_D8W48: lambda **kwargs: DnCNN(depth=8, num_channels=48, use_bn=True, act_type="relu", residual=True, **kwargs),
+    ModelType.DNCNN_D8W48: lambda **kwargs: DnCNN(depth=8, num_channels=48, use_bn=True, act_type="relu", residual=True, **kwargs),
     # Default DnCNN instance
     ModelType.DNCNN: lambda **kwargs: DnCNN(**kwargs),
 }
