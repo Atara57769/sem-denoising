@@ -1,186 +1,202 @@
 """
-Comprehensive benchmarking engine for classical and neural SEM denoising baselines.
+Comprehensive Architecture-Agnostic Benchmarking Engine for AMAT-2 & AMAT-1 Models.
+
+Evaluates models across all 5 registered degradation conditions:
+1. Primary i.i.d. Mixed Poisson-Gaussian Noise
+2. Detector Line Striping
+3. Beam Defocus Blur
+4. Scan Line Shear Drift
+5. Mixed Correlated Degradation
 """
 
 import os
 import glob
+import hashlib
 from typing import Dict, List, Any, Optional, Tuple
 import numpy as np
 import pandas as pd
-import torch
-import torch.nn as nn
+
 try:
     from tqdm.auto import tqdm
 except ImportError:
     def tqdm(iterable, **kwargs):
         return iterable
+
 from sem_denoising.data.loader import get_clean_reference_path, load_image
-from sem_denoising.models.classical import CLASSICAL_METHODS
-from sem_denoising.models.registry import count_parameters
-from sem_denoising.metrics import evaluate_predictions, Timer
+from sem_denoising.models.classical import CLASSICAL_METHODS, denoise_nlm
+from sem_denoising.metrics import evaluate_predictions, compute_sobel_mae, Timer
 from sem_denoising.config import PipelineConfig
+from sem_denoising.noise import (
+    add_mixed_noise,
+    add_striping_noise,
+    add_blur_degradation,
+    add_scan_drift_degradation,
+    add_mixed_correlated_degradation,
+)
+from sem_denoising.adapters import get_adapter, list_available_adapters
+
+STRESS_CONDITIONS = {
+    "i.i.d. Mixed Noise": add_mixed_noise,
+    "Detector Line Striping": add_striping_noise,
+    "Beam Defocus Blur": add_blur_degradation,
+    "Scan Line Shear Drift": add_scan_drift_degradation,
+    "Mixed Correlated": add_mixed_correlated_degradation,
+}
 
 
-def run_neural_inference(
-    model: nn.Module,
-    noisy_img: np.ndarray,
-    device: str = "cpu",
-) -> Tuple[np.ndarray, float]:
-    """
-    Run neural model inference on a single image and record CPU/device latency in ms.
-    Denoised image is recovered by subtracting predicted residual: img - model(img).
-
-    Args:
-        model: PyTorch neural model.
-        noisy_img: 2D numpy array [0.0, 1.0].
-        device: 'cpu' or 'cuda'.
-
-    Returns:
-        (denoised_img as float32 numpy array, runtime_ms)
-    """
-    model.eval()
-    model.to(device)
-    inp = torch.from_numpy(noisy_img).unsqueeze(0).unsqueeze(0).float().to(device)
-
-    with Timer() as timer:
-        with torch.no_grad():
-            out = model(inp)
-            denoised = (inp - out) if model.residual else out
-
-    denoised_img = torch.clamp(denoised, 0.0, 1.0).squeeze().cpu().numpy()
-    return denoised_img.astype(np.float32), timer.elapsed_ms
-
-
-def evaluate_dataset(
-    image_paths: List[str],
-    gt_clean: np.ndarray,
-    neural_models: Dict[str, Tuple[nn.Module, float]],
-    include_classical: bool = True,
+def run_full_benchmark(
+    config: PipelineConfig,
+    adapters: Optional[Union[Dict[str, ModelAdapter], List[str]]] = None,
     max_images: Optional[int] = None,
-    device: str = "cpu",
     verbose: bool = True,
-) -> pd.DataFrame:
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Evaluate all classical and neural models across a list of test images.
-
-    Args:
-        image_paths: List of file paths to noisy test images.
-        gt_clean: Ground truth clean reference image.
-        neural_models: Dict mapping model_name -> (model_instance, checkpoint_size_kb).
-        include_classical: Whether to run classical baselines.
-        max_images: Optional maximum number of images to evaluate.
-        device: 'cpu' or 'cuda'.
-        verbose: Whether to show progress bar.
+    Execute generic architecture-agnostic benchmark on test set using model IDs or adapters.
 
     Returns:
-        DataFrame containing per-image evaluation results.
+        (df_long, summary_df)
     """
+    data_root = config.data.data_root
+    test_set_id = config.data.test_set
+    test_dir = os.path.join(data_root, "intensity_sets", f"set{test_set_id}")
+
+    clean_paths = sorted(glob.glob(os.path.join(test_dir, "*.tiff")))
+    if not clean_paths:
+        clean_paths = sorted(glob.glob(os.path.join(data_root, f"*set{test_set_id}*", "*.tiff")))
+
+    if not clean_paths:
+        raise FileNotFoundError(f"No clean reference images found for Set {test_set_id} in {test_dir}")
+
     if max_images is not None and max_images > 0:
-        image_paths = image_paths[:max_images]
+        clean_paths = clean_paths[:max_images]
+
+    adapter_dict: Dict[str, ModelAdapter] = {}
+    if adapters is None:
+        model_ids = ["tiny_dncnn_d8w48_fp16", "tiny_dncnn_d8w48_fp32", "amat1_conv_refined_add_unet_l"]
+        for m_id in model_ids:
+            adapter = get_adapter(m_id)
+            meta = adapter.get_metadata()
+            adapter_dict[meta.architecture] = adapter
+    elif isinstance(adapters, list):
+        for m_id in adapters:
+            adapter = get_adapter(m_id)
+            meta = adapter.get_metadata()
+            adapter_dict[meta.architecture] = adapter
+    else:
+        adapter_dict = adapters
 
     records: List[Dict[str, Any]] = []
-    pbar = tqdm(image_paths, desc="Benchmarking Test Images", disable=not verbose)
+    pbar = tqdm(clean_paths, desc="Benchmarking Images", disable=not verbose)
 
-    for p in pbar:
-        img_name = os.path.basename(p)
-        noisy_img = load_image(p)
+    for img_path in pbar:
+        img_name = os.path.basename(img_path)
+        gt_clean = load_image(img_path)
 
-        # 1. Classical Baselines
-        if include_classical:
-            for method_name, method_fn in CLASSICAL_METHODS.items():
-                denoised, runtime_ms = method_fn(noisy_img)
+        for condition_name, corrupt_fn in STRESS_CONDITIONS.items():
+            np.random.seed(42)  # Deterministic corruption per image x condition
+            noisy_img = corrupt_fn(gt_clean)
+
+            # 1. Classical Baseline: Non-Local Means (NLM)
+            denoised_nlm, runtime_nlm = denoise_nlm(noisy_img)
+            metrics_nlm = evaluate_predictions(gt_clean, denoised_nlm, runtime_ms=runtime_nlm)
+            sobel_nlm = compute_sobel_mae(gt_clean, denoised_nlm)
+            records.append({
+                "image": img_name,
+                "condition": condition_name,
+                "method": "Non-Local Means (NLM)",
+                "category": "Classical Baseline",
+                "psnr": metrics_nlm["psnr"],
+                "ssim": metrics_nlm["ssim"],
+                "mse": metrics_nlm["mse"],
+                "sobel_mae": sobel_nlm,
+                "runtime_ms": metrics_nlm["runtime_ms"],
+                "params": 0,
+                "precision": "CPU float32",
+                "status": "ELIGIBLE",
+            })
+
+            # 2. Neural Model Adapters
+            for adapter_name, adapter in adapter_dict.items():
+                meta = adapter.get_metadata()
+                denoised, runtime_ms = adapter.infer(noisy_img)
                 metrics = evaluate_predictions(gt_clean, denoised, runtime_ms=runtime_ms)
+                sobel_mae = compute_sobel_mae(gt_clean, denoised)
+
+                status_val = meta.extra_fields.get("status", "ELIGIBLE" if "TinyDnCNN" in adapter_name else "RESEARCH_ONLY")
+
                 records.append({
                     "image": img_name,
-                    "method": method_name,
-                    "type": "classical",
+                    "condition": condition_name,
+                    "method": adapter_name,
+                    "category": meta.extra_fields.get("category", "Neural Model"),
                     "psnr": metrics["psnr"],
                     "ssim": metrics["ssim"],
                     "mse": metrics["mse"],
+                    "sobel_mae": sobel_mae,
                     "runtime_ms": metrics["runtime_ms"],
-                    "params": 0,
-                    "size_kb": 0.0,
+                    "params": meta.parameters,
+                    "precision": meta.precision.upper(),
+                    "status": status_val,
                 })
 
-        # 2. Neural Models
-        for model_name, (model, size_kb) in neural_models.items():
-            denoised, runtime_ms = run_neural_inference(model, noisy_img, device=device)
-            metrics = evaluate_predictions(gt_clean, denoised, runtime_ms=runtime_ms)
-            records.append({
-                "image": img_name,
-                "method": model_name,
-                "type": "neural",
-                "psnr": metrics["psnr"],
-                "ssim": metrics["ssim"],
-                "mse": metrics["mse"],
-                "runtime_ms": metrics["runtime_ms"],
-                "params": count_parameters(model),
-                "size_kb": size_kb,
-            })
+    df_long = pd.DataFrame(records)
 
-    return pd.DataFrame(records)
+    # Save outputs
+    output_dir = config.evaluation.output_dir
+    os.makedirs(output_dir, exist_ok=True)
+    csv_path = os.path.join(output_dir, "amat2_full_benchmark_results.csv")
+    parquet_path = os.path.join(output_dir, "amat2_full_benchmark_results.parquet")
+
+    df_long.to_csv(csv_path, index=False)
+    try:
+        df_long.to_parquet(parquet_path, index=False)
+    except Exception:
+        pass
+
+    summary_df = (
+        df_long.groupby(["condition", "method", "precision", "status"])
+        .agg({
+            "psnr": "mean",
+            "ssim": "mean",
+            "sobel_mae": "mean",
+            "runtime_ms": "mean",
+            "params": "first",
+        })
+        .reset_index()
+        .sort_values(by=["condition", "psnr"], ascending=[True, False])
+    )
+
+    summary_csv = os.path.join(output_dir, "amat2_benchmark_summary.csv")
+    summary_df.to_csv(summary_csv, index=False)
+
+    if verbose:
+        print(f"\n=== AMAT-2 BENCHMARK COMPLETED ===")
+        print(f"Exported long-form results to: {csv_path}")
+        print(summary_df.to_string(index=False))
+
+    return df_long, summary_df
 
 
 class BenchmarkRunner:
-    """High-level benchmarking coordinator."""
+    """
+    High-level class coordinator for full multi-condition benchmark execution.
+    """
 
     def __init__(self, config: PipelineConfig):
         self.config = config
 
     def run(
         self,
-        neural_models: Dict[str, Tuple[nn.Module, float]],
-        include_classical: bool = True,
+        adapters: Optional[Dict[str, ModelAdapter]] = None,
         max_images: Optional[int] = None,
+        verbose: bool = True,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
-        Execute full benchmark on configured test set, save CSV, and return (full_df, summary_df).
+        Execute full benchmark using configured model adapters and return (df_long, summary_df).
         """
-        test_set_id = self.config.data.test_set
-        data_root = self.config.data.data_root
-        test_dir = os.path.join(data_root, "intensity_sets", f"set{test_set_id}")
-
-        test_paths = sorted(glob.glob(os.path.join(test_dir, "*.tiff")))
-        if not test_paths:
-            # Fallback to general search if path structure differs
-            test_paths = sorted(glob.glob(os.path.join(data_root, f"*set{test_set_id}*", "*.tiff")))
-
-        if not test_paths:
-            raise FileNotFoundError(f"No test images found for Set {test_set_id} in {test_dir}")
-
-        gt_clean = load_image(get_clean_reference_path(test_set_id, data_root=data_root))
-
-        df_all = evaluate_dataset(
-            image_paths=test_paths,
-            gt_clean=gt_clean,
-            neural_models=neural_models,
-            include_classical=include_classical,
+        return run_full_benchmark(
+            config=self.config,
+            adapters=adapters,
             max_images=max_images,
-            device=self.config.training.device,
+            verbose=verbose,
         )
-
-        output_dir = self.config.evaluation.output_dir
-        os.makedirs(output_dir, exist_ok=True)
-        csv_path = os.path.join(output_dir, self.config.evaluation.results_csv)
-        df_all.to_csv(csv_path, index=False)
-        print(f"Exported detailed per-image benchmarking results to: {csv_path}")
-
-        summary_df = (
-            df_all.groupby(["method", "type"])
-            .agg({
-                "psnr": "mean",
-                "ssim": "mean",
-                "mse": "mean",
-                "runtime_ms": "mean",
-                "params": "first",
-                "size_kb": "first",
-            })
-            .reset_index()
-            .sort_values(by="psnr", ascending=False)
-        )
-
-        print("\n=== FINAL COMPARATIVE BENCHMARK TABLE ===")
-        print(summary_df.to_string(index=False))
-
-        return df_all, summary_df
-

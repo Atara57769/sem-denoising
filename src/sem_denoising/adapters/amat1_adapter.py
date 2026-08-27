@@ -17,7 +17,21 @@ from sem_denoising.adapters.base import ModelAdapter, ModelMetadata
 from sem_denoising.metrics import Timer
 
 
-def _load_amat1_package_module(package_dir: str):
+def _load_amat1_package_module(package_dir: Optional[str] = None):
+    if not package_dir:
+        candidates = [
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "AMAT1_TO_AMAT2_PACKAGE_V1")),
+            os.path.abspath(os.path.join(os.getcwd(), "AMAT1_TO_AMAT2_PACKAGE_V1")),
+            os.path.abspath(os.path.join(os.getcwd(), "..", "AMAT1_TO_AMAT2_PACKAGE_V1")),
+        ]
+        for cand in candidates:
+            if os.path.exists(os.path.join(cand, "model", "implementation.py")):
+                package_dir = cand
+                break
+
+    if not package_dir:
+        raise FileNotFoundError("AMAT-1 package_dir not specified and default directory could not be located.")
+
     impl_path = os.path.join(package_dir, "model", "implementation.py")
     if not os.path.exists(impl_path):
         raise FileNotFoundError(f"AMAT-1 implementation file not found at: {impl_path}")
@@ -25,7 +39,7 @@ def _load_amat1_package_module(package_dir: str):
     spec = importlib.util.spec_from_file_location("amat1_implementation", impl_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module
+    return module, package_dir
 
 
 class AMAT1Adapter(ModelAdapter):
@@ -39,9 +53,8 @@ class AMAT1Adapter(ModelAdapter):
         checkpoint_path: Optional[str] = None,
         device: str = "cpu",
     ):
-        self.package_dir = package_dir
         self.device = device
-        self.module = _load_amat1_package_module(package_dir)
+        self.module, self.package_dir = _load_amat1_package_module(package_dir)
         self.model = self.module.build_model()
         
         self.checkpoint_path = checkpoint_path
